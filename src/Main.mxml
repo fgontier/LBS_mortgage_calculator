@@ -1,0 +1,643 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="vertical"  xmlns:amcharts="http://www.amcharts.com/com_internal"  xmlns:com="*" >
+	
+	<mx:Style source="assets/css/style.css" />	
+	
+	<!--Using real validation tag for Validation-->
+	<mx:Array id="validators">	
+		<mx:NumberValidator source="{houseValue}" property="text" trigger="{Submit}" minValue="1" maxValue="5000000" triggerEvent="click" />
+		<mx:NumberValidator source="{mortgageBalance}" property="text" trigger="{Submit}" minValue="1" maxValue="5000000" triggerEvent="click" />
+		<mx:NumberValidator source="{interestRate}" property="text" trigger="{Submit}" minValue="0.1" maxValue="20" precision="2" triggerEvent="click" precisionError="The amount entered can have only 2 digits beyond the decimal point." />
+		<mx:NumberValidator source="{houseAppreciationRate}" trigger="{Submit}" triggerEvent="click" minValue="0" property="selectedIndex" lowerThanMinError="Please select a tax rate." /> 
+	</mx:Array>
+	<mx:CurrencyFormatter id="cf" currencySymbol="" alignSymbol="right"/>
+	
+	<mx:Script>
+	<![CDATA[	
+	
+	import mx.collections.ArrayCollection;
+	import mx.validators.Validator;
+	import mx.events.ValidationResultEvent;
+	import agi.utils.Format;
+	
+	private var houseValueNum:int = 0;
+	private var houseAppreciationRateChosen:Number = 0;
+	private var mortgageBalanceNum:int = 0;
+	private var interestRateNum:Number;		
+	private var myMortgage15:Mortgage;
+	private var myMortgage30:Mortgage;
+	private var monthly15:Number = 0;
+	private var monthly15Rounded:Number = 0;
+	private var monthly30:Number = 0;
+	private var monthly30Rounded:Number = 0;
+	private var difference:Number = 0;
+	private var _format:Format = new Format();
+	
+    [Bindable] private var mySummaryArray15:Array; 
+    [Bindable] private var myBigArray15:Array; 
+    [Bindable] private var mySummaryArray30:Array; 
+    [Bindable] private var myBigArray30:Array;
+	[Bindable] private var mortgage15YearArray:ArrayCollection;
+	[Bindable] private var mortgage30YearArray:ArrayCollection;
+	[Bindable] private var _15ve30YearArray:ArrayCollection;
+	
+	[Bindable] private var monthtlyPaymentText:String = "";
+	[Bindable] private var _15YearMortgageText:String = "";
+	[Bindable] private var _30YearMortgageText:String = "";
+	[Bindable] private var _15vs30Text:String = "";
+	[Bindable] private var _15vs30TitleText:String = "";
+	[Bindable] private var summaryTitleText:String = "";
+	
+
+	[Bindable] private var myGrid1Provider:ArrayCollection;
+	[Bindable] private var myGrid2Provider:ArrayCollection;
+	[Bindable] private var myGrid3Provider:ArrayCollection;
+	[Bindable] private var myGrid4Provider:ArrayCollection;
+	[Bindable] private var myGrid5Provider:ArrayCollection;
+	
+	
+	[Embed (source = "assets/LBS_logo.swf")]
+    [Bindable] public var LBSlogo:Class; 
+	
+	private function changeEvt(event:Event):void 
+	{
+		houseAppreciationRateChosen = event.currentTarget.selectedItem.@data / 100;  //trace("typeof::::::::::::: " + typeof(houseAppreciationRateChosen))
+	}
+
+	public function createTable():void
+	{
+	
+		myMortgage15 = new Mortgage(monthly15, mortgageBalanceNum, monthly15, interestRateNum, houseValueNum, houseAppreciationRateChosen );	
+		myMortgage30 = new Mortgage(monthly15, mortgageBalanceNum, monthly30, interestRateNum, houseValueNum, houseAppreciationRateChosen );
+		
+		////////////////// MORTGAGE  15 YEAR ///////////////////
+		while (myMortgage15.month < 360)
+		{
+			myMortgage15.recalculate();
+			myMortgage15.month = myMortgage15.month + 1;	
+			myMortgage15.mortgageBalanceBOM = myMortgage15.mortgageBalanceEOM;	
+			myMortgage15.houseValueNum = myMortgage15.homeValueEOM;  
+		}
+		mySummaryArray15 = myMortgage15.summaryArray;					
+		// COMMENTED FOR TESTING ONLY >>  //myBigArray15 = myMortgage15.bigArray;	
+		
+		
+		mortgage15YearArray =  new ArrayCollection([
+		{year:"Year 10", mortgageBalance:(Math.round(myMortgage15.summaryArray[2][2])*100)/100, savings:(Math.round(myMortgage15.summaryArray[2][4])*100)/100, equity: (Math.round(myMortgage15.summaryArray[2][3])*100)/100},
+		{year:"Year 20", mortgageBalance:(Math.round(myMortgage15.summaryArray[4][2])*100)/100, savings:(Math.round(myMortgage15.summaryArray[4][4])*100)/100, equity: (Math.round(myMortgage15.summaryArray[4][3])*100)/100},
+		{year:"Year 30", mortgageBalance:(Math.round(myMortgage15.summaryArray[5][2])*100)/100, savings:(Math.round(myMortgage15.summaryArray[5][4])*100)/100, equity: (Math.round(myMortgage15.summaryArray[5][3])*100)/100}
+		])
+				
+		
+		////////////////// MORTGAGE  30 YEAR ///////////////////
+		while (myMortgage30.month < 360)
+		{
+			myMortgage30.recalculate();
+			myMortgage30.month = myMortgage30.month + 1;
+			myMortgage30.mortgageBalanceBOM = myMortgage30.mortgageBalanceEOM;
+			myMortgage30.houseValueNum = myMortgage30.homeValueEOM;  
+		}
+		mySummaryArray30 = myMortgage30.summaryArray;	
+		// COMMENTED FOR TESTING ONLY >> //myBigArray30 = myMortgage30.bigArray; 
+
+		mortgage30YearArray =  new ArrayCollection([
+		{year:"Year 10", mortgageBalance:(Math.round(myMortgage30.summaryArray[2][2])*100)/100, savings:(Math.round(myMortgage30.summaryArray[2][4])*100)/100, equity: (Math.round(myMortgage30.summaryArray[2][3])*100)/100},
+		{year:"Year 20", mortgageBalance:(Math.round(myMortgage30.summaryArray[4][2])*100)/100, savings:(Math.round(myMortgage30.summaryArray[4][4])*100)/100, equity: (Math.round(myMortgage30.summaryArray[4][3])*100)/100},
+		{year:"Year 30", mortgageBalance:(Math.round(myMortgage30.summaryArray[5][2])*100)/100, savings:(Math.round(myMortgage30.summaryArray[5][4])*100)/100, equity: (Math.round(myMortgage30.summaryArray[5][3])*100)/100}
+		]);
+		
+		_15ve30YearArray = new ArrayCollection([
+		{year:"Year 15", monthlyMortgagePayment: (Math.round(monthly15*100)/100), monthlySavings: 0},
+		{year:"Year 30", monthlyMortgagePayment: (Math.round(monthly30*100)/100), monthlySavings: difference}
+		]);
+		
+// Mortgage Balance Summary:
+		myGrid1Provider = new ArrayCollection;
+		var obj:Object = new Object;		
+		obj.year = mySummaryArray15[2][0];
+		obj.mortgage15year = reformate(mySummaryArray15[2][2]);
+		obj.mortgage30year = reformate(mySummaryArray30[2][2]);
+		myGrid1Provider.addItem(obj);		
+		obj = new Object;
+		obj.year = mySummaryArray15[4][0];
+		obj.mortgage15year = reformate(mySummaryArray15[4][2]);
+		obj.mortgage30year = reformate(mySummaryArray30[4][2]);
+		myGrid1Provider.addItem(obj);				
+		obj = new Object;
+		obj.year = mySummaryArray15[5][0];
+		obj.mortgage15year = reformate(mySummaryArray15[5][2]);
+		obj.mortgage30year = reformate(mySummaryArray30[5][2]);
+		myGrid1Provider.addItem(obj);		
+		
+// Home Equity Balance:		
+		myGrid2Provider = new ArrayCollection;
+		obj = new Object;		
+		obj.year = mySummaryArray15[2][0];
+		obj.mortgage15year = reformate(mySummaryArray15[2][3]);
+		obj.mortgage30year = reformate(mySummaryArray30[2][3]);
+		myGrid2Provider.addItem(obj);		
+		obj = new Object;
+		obj.year = mySummaryArray15[4][0];
+		obj.mortgage15year = reformate(mySummaryArray15[4][3]);
+		obj.mortgage30year = reformate(mySummaryArray30[4][3]);
+		myGrid2Provider.addItem(obj);				
+		obj = new Object;
+		obj.year = mySummaryArray15[5][0];
+		obj.mortgage15year = reformate(mySummaryArray15[5][3]);
+		obj.mortgage30year = reformate(mySummaryArray30[5][3]);
+		myGrid2Provider.addItem(obj);		
+		
+// Savings Balance Balance:                                           
+		myGrid3Provider = new ArrayCollection;
+		obj = new Object;		
+		obj.year = mySummaryArray15[2][0];
+		obj.mortgage15year = reformate(mySummaryArray15[2][4]);
+		obj.mortgage30year = reformate(mySummaryArray30[2][4]);
+		myGrid3Provider.addItem(obj);		
+		obj = new Object;
+		obj.year = mySummaryArray15[4][0];
+		obj.mortgage15year = reformate(mySummaryArray15[4][4]);
+		obj.mortgage30year = reformate(mySummaryArray30[4][4]);
+		myGrid3Provider.addItem(obj);				
+		obj = new Object;
+		obj.year = mySummaryArray15[5][0];
+		obj.mortgage15year = reformate(mySummaryArray15[5][4]);
+		obj.mortgage30year = reformate(mySummaryArray30[5][4]);
+		myGrid3Provider.addItem(obj);	
+		
+//Home Value:	
+		myGrid4Provider = new ArrayCollection;
+		obj = new Object;		
+		obj.year = mySummaryArray15[2][0];
+		obj.mortgage15year = reformate(mySummaryArray15[2][1]);
+		obj.mortgage30year = reformate(mySummaryArray30[2][1]);
+		myGrid4Provider.addItem(obj);		
+		obj = new Object;
+		obj.year = mySummaryArray15[4][0];
+		obj.mortgage15year = reformate(mySummaryArray15[4][1]);
+		obj.mortgage30year = reformate(mySummaryArray30[4][1]);
+		myGrid4Provider.addItem(obj);				
+		obj = new Object;
+		obj.year = mySummaryArray15[5][0];
+		obj.mortgage15year = reformate(mySummaryArray15[5][1]);
+		obj.mortgage30year = reformate(mySummaryArray30[5][1]);
+		myGrid4Provider.addItem(obj);
+		
+// Net Home Equity and Savings Balance	
+		myGrid5Provider = new ArrayCollection;
+		obj = new Object;		
+		obj.year = mySummaryArray15[2][0];
+		obj.mortgage15year = reformate(mySummaryArray15[2][5]);
+		obj.mortgage30year = reformate(mySummaryArray30[2][5]);
+		myGrid5Provider.addItem(obj);		
+		obj = new Object;
+		obj.year = mySummaryArray15[4][0];
+		obj.mortgage15year = reformate(mySummaryArray15[4][5]);
+		obj.mortgage30year = reformate(mySummaryArray30[4][5]);
+		myGrid5Provider.addItem(obj);				
+		obj = new Object;
+		obj.year = mySummaryArray15[5][0];
+		obj.mortgage15year = reformate(mySummaryArray15[5][5]);
+		obj.mortgage30year = reformate(mySummaryArray30[5][5]);
+		myGrid5Provider.addItem(obj);
+	
+	}	
+		
+	private function Calculate():void 
+	{
+
+		// change string to int and remove commas:
+		var myPattern:RegExp = /,/g;
+		houseValueNum = int(houseValue.text.replace(myPattern, ""));							
+		mortgageBalanceNum = int(mortgageBalance.text.replace(myPattern, ""));	
+		
+		interestRateNum = Number(interestRate.text)/100;																				
+
+		monthly15 = mortgageBalanceNum * (( interestRateNum / 12 ) / ( 1 - Math.pow( ( 1 + ( interestRateNum / 12 ) ) , -180 ) ) );			
+		monthly15Rounded = Math.round(monthly15*100)/100;
+		monthly30 = mortgageBalanceNum * (( interestRateNum / 12 ) / ( 1 - Math.pow( ( 1 + ( interestRateNum / 12 ) ) , -360 ) ) );			
+		monthly30Rounded = Math.round(monthly30*100)/100;		
+				
+		difference = monthly15 - monthly30;
+		difference = Math.round(difference * 100) / 100;
+		
+		createTable();
+		
+		// create text:
+		//_15vs30TitleText = "Required Monthly Payment"
+		_15vs30TitleText = ""
+		_15vs30Text = "Fiction, with a 30-year mortgage you have a lower monthly payment, which affords flexible wealth building opportunities you would not enjoy as early on with a 15-year mortgage.";
+		monthtlyPaymentText= "Fiction, they cost the same. Assuming mortgage and savings rate are consistent; there is no difference between a 15-year mortgage and a 30-year mortgage. When all things are considered, there are hidden benefits to a 30-year mortgage that dispel this myth (e.g., longer tax benefits, additional cash flow) that create financial opportunities for you."
+		
+		_15YearMortgageText = "15 Year Mortgage";
+		_30YearMortgageText = "30 Year Mortgage";
+		//summaryTitleText = "15 versus 30 Year Mortgage and Savings Strategy Summary"
+		summaryTitleText = "";
+		
+		//show the legends:
+		monthlyPaymentLegend.visible = true;
+		//_30YearMortgageLegend.visible = true;
+	}
+	
+	private function ResetForm(evt:MouseEvent):void 
+	{
+		// reset form:
+		houseValue.text = "";
+		houseAppreciationRate.selectedIndex = -1;		
+		mortgageBalance.text = "";
+		interestRate.text = "";
+		monthtlyPaymentText = "";
+		
+		//reset text:
+		_15YearMortgageText = "";
+		_30YearMortgageText = "";
+		_15vs30Text = "";
+		_15vs30TitleText = "";
+		summaryTitleText = "";
+		// reset to tirst tab:
+		tabNavigator.selectedIndex = 0;
+		// hide charts:
+		mortgage15YearArray.removeAll();
+		mortgage30YearArray.removeAll();
+		_15ve30YearArray.removeAll();
+		
+		if(myGrid1){myGrid1.dataProvider.removeAll();}
+		if(myGrid2){myGrid2.dataProvider.removeAll();}
+		if(myGrid3){myGrid3.dataProvider.removeAll();}
+		if(myGrid4){myGrid4.dataProvider.removeAll();}
+		if(myGrid5){myGrid5.dataProvider.removeAll();}
+		
+		
+		monthlyPaymentLegend.visible = false;
+		//_30YearMortgageLegend.visible = false;
+		
+		// reset variables:
+		//monthly15 = 0;
+		//monthly30 = 0;
+		//houseValueNum = 0;
+		//houseAppreciationRateChosen = 0;
+		//mortgageBalanceNum = 0;
+		//interestRateNum = 0;
+		//difference = 0;
+		//initApp();
+		//theResultText = "";
+	}
+	
+    public function linkHandler(event:TextEvent):void 
+	{
+        // Open the link in a new browser window.
+        navigateToURL(new URLRequest(event.text), '_self')
+    }
+	
+	public function reformate(value:Number):String
+	{
+		if(value <= 0) {value = 0}
+		var formatedValue:String = _format.currency(value, 0, "$");			//_format.currency(value,2,"$")
+		return(formatedValue);
+	}
+		
+	]]>
+	</mx:Script>
+	
+	<mx:XMLList id="percentageXMLList">
+		<percentage label="0 %" data="0" />
+		<percentage label="1 %" data="1" />
+		<percentage label="2 %" data="2" />
+		<percentage label="3 %" data="3" />
+		<percentage label="4 %" data="4" />
+		<percentage label="5 %" data="5" />
+		<percentage label="6 %" data="6" />
+		<percentage label="7 %" data="7" />
+		<percentage label="8 %" data="8" />
+		<percentage label="9 %" data="9" />
+		<percentage label="10 %" data="10" />
+		<percentage label="11 %" data="11" />
+		<percentage label="12 %" data="12" />
+	</mx:XMLList>
+	
+	<mx:Canvas>
+		<mx:filters>
+			<mx:DropShadowFilter alpha="0.6" />
+		</mx:filters>	
+		
+		<com:GradientCanvas id="header" styleName="canvasGradientOutside" width="818" height="109" y="10">
+
+			<mx:Label styleName="canvasTitle" text="Fact or Fiction: A 15-year mortgage is better than a 30-year mortgage? Find out." x="165" y="6" />
+			
+			<com:GradientCanvas styleName="canvasGradientInside"  width="806" height="72" x="6" y="32">
+				<mx:Label text="House value:" x="10" y="15" />			
+				<mx:Label text="House appreciation rate:" x="120" y="15" />		
+				<mx:Label text="Mortgage balance:" x="310" y="15" />	
+				<mx:Label text="Interest rate:" x="450" y="15" />
+				<mx:TextInput id="houseValue" x="12" y="35" width="80" restrict="0-9/,/$" change="houseValue.text=cf.format(houseValue.text);"/>					
+				<mx:ComboBox styleName="ComboBox" x="120" y="35" width="150" id="houseAppreciationRate" prompt="Select a rate" selectedIndex="-1" dataProvider="{percentageXMLList}" labelField="@label" change="changeEvt(event)" />
+				<mx:TextInput id="mortgageBalance" x="310" y="35" width="80" restrict="0-9/,/$" change="mortgageBalance.text=cf.format(mortgageBalance.text);"/>	
+				<mx:TextInput id="interestRate" x="450" y="35" width="80" restrict="0-9,." />
+				<mx:Button styleName="button" id="Submit" width="90" x="568" y="35" label="Calculate"  click="if( Validator.validateAll(validators).length==0 ){ Calculate()  }" />
+				<mx:Button styleName="button" width="90" x="685" y="35" label="Reset" click="ResetForm(event)" />	
+			</com:GradientCanvas>	
+		</com:GradientCanvas>	
+	
+		<com:GradientCanvas id="chartsContainer" styleName="canvasGradientOutside" gradientRatio = "[0,127]" width="818" height="486" y="138">
+			
+			<mx:Label x="130" y="456" selectable="true" link="linkHandler(event);" styleName="callToAction">
+				<mx:htmlText><![CDATA[Go to <a href='event:http://www.thelivingbalancesheet.com/get-started'><u>Get Started</u></a> and request a free consultation to find out how you can limit the impact of taxes.]]>
+				</mx:htmlText>
+			</mx:Label>		
+			
+			
+			<com:GradientCanvas styleName="canvasGradientInside"  width="806" height="438" x="6" y="6">
+
+				<mx:TabNavigator width="100%" height="100%" id="tabNavigator">
+					
+					
+					<!-- ////////////////////////////////////////////////////////////////// Monthly Payment ///////////////////////////////////////////////////////// -->
+
+											
+					<mx:Canvas label="Monthly Payment" width="100%" height="100%">	
+
+						<mx:Canvas>					
+							<mx:Text x="320" y="10">
+								<mx:htmlText>
+									{_15vs30TitleText}
+								</mx:htmlText>
+							</mx:Text>
+						</mx:Canvas>
+						
+						<amcharts:AmSerialChart 
+							 x="120"
+							 y="10"
+							 columnWidth="0.8"
+							 rotate="false"
+							 width="500"
+							 height="65%"
+							 id="monthlyPaymentChart"
+							 marginTop="0"
+							 marginRight="0"
+							 marginLeft="70"
+							 dataProvider="{_15ve30YearArray}"
+							 categoryField="year"
+							 startDuration="2"
+							 angle="30"
+							 depth3D="15"
+							 fontFamily="Arial"
+							 fontSize="12" 
+							 plotAreaFillAlphas="[0]">
+								 
+							<amcharts:graphs>			
+								
+								<amcharts:AmGraph valueField="monthlyMortgagePayment" title="Monthly Mortgage Payment" type="column" lineAlpha="0" fillAlphas="[0.8, 1]" fillColors="[0xCA3F3F,0x861C1A]" gradientOrientation="vertical" balloonText="Monthly Mortgage Payment: $[[value]]" />					
+								<amcharts:AmGraph valueField="monthlySavings" title="Potential Monthly Savings" type="column" lineAlpha="0" fillAlphas="[0.8, 1]" fillColors="[0x447640,0x64A252]" gradientOrientation="vertical" balloonText="Potential Monthly Savings: $[[value]]" />
+																
+							</amcharts:graphs>
+						
+							<amcharts:valueAxes>
+								<amcharts:ValueAxis stackType="regular" gridAlpha="1" gridColor="#FFFFFF" axisColor="#2C5291" axisAlpha="1" axisThickness="3"  unit="$" unitPosition="left" min="0" />                    
+							</amcharts:valueAxes>
+					
+							<amcharts:categoryAxis>
+								<amcharts:CategoryAxis gridAlpha="1" gridColor="#ffffff" axisColor="#2C5291" axisAlpha="1" axisThickness="3" />
+							</amcharts:categoryAxis>	
+							
+						</amcharts:AmSerialChart>
+					
+						<amcharts:AmLegend
+							visible="false"
+							id="monthlyPaymentLegend"
+							color="0x000000"
+							x="180" 
+							y="270"
+							maxColumns="4"
+							switchable="false"
+							dataProvider="{monthlyPaymentChart}"
+							width="100%"
+							marginRight="0"
+							marginLeft="0"
+							textClickEnabled="false"
+							marginBottom="0"/> 			
+								
+						<mx:Text x="25" y="330" width="750" selectable="false" fontSize="17" color="#447640">
+							<mx:htmlText>
+								{_15vs30Text}
+							</mx:htmlText>
+						</mx:Text>	
+						
+					</mx:Canvas>
+					
+					<!-- ///////////////////////////////////////////////////////////// Find your opportunity ///////////////////////////////////////// -->
+					
+					
+					<mx:Canvas label="Find Your Opportunity">
+ 						
+						<mx:Canvas>					
+							<mx:Text x="150" y="0">
+								<mx:htmlText>
+									{_15YearMortgageText}
+								</mx:htmlText>
+							</mx:Text>
+						</mx:Canvas>
+						
+						<amcharts:AmSerialChart 
+							 y="10"
+							 columnWidth="0.8"
+							 rotate="false"
+							 width="380"
+							 height="70%"
+							 id="_15YearMortgageChart"
+							 marginTop="20"
+							 marginRight="10"
+							 marginLeft="100"
+							 dataProvider="{mortgage15YearArray}"
+							 categoryField="year"
+							 startDuration="2"
+							 angle="30"
+							 depth3D="15"
+							 fontFamily="Arial"
+							 fontSize="12"
+							 plotAreaFillAlphas="[0]">
+								 
+							<amcharts:graphs>			
+								
+								<amcharts:AmGraph valueField="mortgageBalance" type="column" lineAlpha="0" fillAlphas="[0.6, 1]" fillColors="[0xCA3F3F,0x861C1A]" gradientOrientation="vertical" balloonText="Mortgage Balance: $[[value]]"  />					
+								<amcharts:AmGraph valueField="savings" type="column" lineAlpha="0" fillAlphas="[0.6, 1]" fillColors="[0x447640,0x64A252]" gradientOrientation="vertical" balloonText="Savings: $[[value]]" />
+								
+								<amcharts:AmGraph valueField="equity" type="column" lineAlpha="0" fillAlphas="[0.6, 1]" fillColors="[0x2C5291,0x2C5291]" gradientOrientation="vertical" balloonText="Equity: $[[value]]" />
+								
+							</amcharts:graphs>	
+							
+							<!--
+							fontSize="12" 
+							descriptionField="short"
+							fillColors="[#447640,#64A252]"
+							labelPosition="bottom"
+							labelText="[[description]]"
+							balloonText="Age [[category]]: $[[value]]"						
+							-->
+							
+						   <amcharts:valueAxes>
+								<amcharts:ValueAxis stackType="regular" gridAlpha="1" gridColor="#FFFFFF" axisColor="#2C5291" axisAlpha="1" axisThickness="3" min="0" unit="$" unitPosition="left"/>                    
+							</amcharts:valueAxes>
+					
+							<amcharts:categoryAxis>
+								<amcharts:CategoryAxis gridAlpha="1" gridColor="#ffffff" axisColor="#2C5291" axisAlpha="1" axisThickness="3" />
+							</amcharts:categoryAxis>
+							
+						</amcharts:AmSerialChart>
+						
+						<mx:Canvas>					
+							<mx:Text x="550" y="0">
+								<mx:htmlText>
+									{_30YearMortgageText}
+								</mx:htmlText>
+							</mx:Text>
+						</mx:Canvas>
+						
+						<amcharts:AmSerialChart 
+							 x="390"
+							 y="10"
+							 columnWidth="0.8"
+							 rotate="false"
+							 width="380"
+							 height="70%"
+							 id="_30YearMortgageChart"
+							 marginTop="20"
+							 marginRight="10"
+							 marginLeft="90"
+							 dataProvider="{mortgage30YearArray}"
+							 categoryField="year"
+							 startDuration="2"
+							 angle="30"
+							 depth3D="15"
+							 fontFamily="Arial"
+							 fontSize="12" 
+							 plotAreaFillAlphas="[0]">
+								 
+							<amcharts:graphs>			
+								
+								<amcharts:AmGraph title="Mortgage Balance" valueField="mortgageBalance" type="column" lineAlpha="0" fillAlphas="[0.6, 1]" fillColors="[0xCA3F3F,0x861C1A]" gradientOrientation="vertical" balloonText="Mortgage Balance: $[[value]]" />					
+								<amcharts:AmGraph title="Savings" valueField="savings" type="column" lineAlpha="0" fillAlphas="[0.6, 1]" fillColors="[0x447640,0x64A252]" gradientOrientation="vertical" balloonText="Savings: $[[value]]" />
+								
+								<amcharts:AmGraph title="Equity" valueField="equity" type="column" lineAlpha="0" fillAlphas="[0.6, 1]" fillColors="[0x2C5291,0x2C5291]" gradientOrientation="vertical" balloonText="Equity: $[[value]]" />
+								
+							</amcharts:graphs>
+							
+							<!--
+							fontSize="12" 
+							descriptionField="short"
+							fillColors="[#447640,#64A252]"
+							labelPosition="bottom"
+							labelText="[[description]]"
+							balloonText="Age [[category]]: $[[value]]"						
+							-->
+							
+						   <amcharts:valueAxes>
+								<amcharts:ValueAxis stackType="regular" gridAlpha="1" gridColor="#FFFFFF" axisColor="#2C5291" axisAlpha="1" axisThickness="3"  min="0" unit="$" unitPosition="left"/>                    
+							</amcharts:valueAxes>
+					
+							<amcharts:categoryAxis>
+								<amcharts:CategoryAxis gridAlpha="1" gridColor="#ffffff" axisColor="#2C5291" axisAlpha="1" axisThickness="3" />
+							</amcharts:categoryAxis>
+							
+						</amcharts:AmSerialChart>						
+						
+						<amcharts:AmLegend
+							visible="true"
+							id="_30YearMortgageLegend"
+							color="0x000000"
+							x="180" 
+							y="290"
+							switchable="false"
+							dataProvider="{_30YearMortgageChart}"
+							width="80%"
+							marginRight="0"
+							marginLeft="0"
+							textClickEnabled="false"
+							marginBottom="0"/> 
+									
+						<mx:Text x="10" y="330" width="780" selectable="false" fontSize="15" color="#447640">
+							<mx:htmlText>
+								{monthtlyPaymentText}
+							</mx:htmlText>
+						</mx:Text>	
+						
+					</mx:Canvas>	
+					
+					<!-- //////////////////////////////////////////////////////////// SUMMERY ///////////////////////////////////////////////// -->
+					
+					<mx:Canvas label="Saving Strategy Summary">
+					
+						<mx:Canvas>					
+							<mx:Text x="230" y="10">
+								<mx:htmlText>
+									{summaryTitleText}
+								</mx:htmlText>
+							</mx:Text>
+						</mx:Canvas>	
+						<mx:VBox id="summeryBox" paddingLeft="40">
+							
+							<mx:Label text="Mortgage Balance:"/> 
+							<mx:DataGrid id="myGrid1" rowCount="3" dataProvider="{myGrid1Provider}" verticalScrollPolicy="off">
+								<mx:columns>
+									<mx:DataGridColumn dataField="year" width="100" headerText="Year" />
+									<mx:DataGridColumn dataField="mortgage15year" width="300" headerText="15 Year Mortgage" />					
+									<mx:DataGridColumn dataField="mortgage30year" width="300" headerText="30 Year Mortgage" />					
+								</mx:columns>
+							</mx:DataGrid>	
+							
+							<mx:Label text="Home Equity Balance:"/> 
+							<mx:DataGrid id="myGrid2" rowCount="3" dataProvider="{myGrid2Provider}" verticalScrollPolicy="off">
+								<mx:columns>
+									<mx:DataGridColumn dataField="year" width="100" headerText="Year" />
+									<mx:DataGridColumn dataField="mortgage15year" width="300" headerText="15 Year Mortgage" />					
+									<mx:DataGridColumn dataField="mortgage30year" width="300" headerText="30 Year Mortgage" />					
+								</mx:columns>
+							</mx:DataGrid>	
+							
+							<mx:Label text="Savings Balance:"/> 
+							<mx:DataGrid id="myGrid3" rowCount="3" dataProvider="{myGrid3Provider}" verticalScrollPolicy="off">
+								<mx:columns>
+									<mx:DataGridColumn dataField="year" width="100" headerText="Year" />
+									<mx:DataGridColumn dataField="mortgage15year" width="300" headerText="15 Year Mortgage" />					
+									<mx:DataGridColumn dataField="mortgage30year" width="300" headerText="30 Year Mortgage" />					
+								</mx:columns>
+							</mx:DataGrid>	
+							
+							<mx:Label text="Home Value:"/> 
+							<mx:DataGrid id="myGrid4" rowCount="3" dataProvider="{myGrid4Provider}" verticalScrollPolicy="off">
+								<mx:columns>
+									<mx:DataGridColumn dataField="year" width="100" headerText="Year" />
+									<mx:DataGridColumn dataField="mortgage15year" width="300" headerText="15 Year Mortgage" />					
+									<mx:DataGridColumn dataField="mortgage30year" width="300" headerText="30 Year Mortgage" />						
+								</mx:columns>
+							</mx:DataGrid>								
+							
+							<mx:Label text="Net Home Equity and Savings balance:"/> 
+							<mx:DataGrid id="myGrid5" rowCount="3" dataProvider="{myGrid5Provider}" verticalScrollPolicy="off">
+								<mx:columns>
+									<mx:DataGridColumn dataField="year" width="100" headerText="Year" />
+									<mx:DataGridColumn dataField="mortgage15year" width="300" headerText="15 Year Mortgage" />					
+									<mx:DataGridColumn dataField="mortgage30year" width="300" headerText="30 Year Mortgage" />						
+								</mx:columns>
+							</mx:DataGrid>		
+						</mx:VBox>
+						
+					</mx:Canvas>					
+					
+				</mx:TabNavigator> 	
+
+			</com:GradientCanvas>
+		</com:GradientCanvas>
+	</mx:Canvas>
+	
+	<mx:Canvas width="800" height="60">
+					
+		<mx:Image id="lbslogo" source="{LBSlogo}" x="4" y="13" width="65%" height="65%" />
+
+		<mx:Text styleName="legal" x="180" y="5" selectable="false" width="600" height="55"> 
+			<mx:text>
+				<![CDATA[This calculator is designed to be informational and educational only, and when used alone, does not constitute investment advice. The results presented by this calculator are hypothetical and may not reflect actual results. The information is not intended to be considered tax or legal advice. Neither The Guardian Life Insurance Company of America nor its affiliates, subsidiaries, employees or agents (including Guardian Insurance & Annuity Company, Inc. and Park Avenue Securities LLC) are responsible for any human or mechanical errors or omissions arising from the use of these calculators.]]>
+			</mx:text>	
+		</mx:Text>
+	</mx:Canvas>
+	
+</mx:Application>

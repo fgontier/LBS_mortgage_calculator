@@ -1,0 +1,176 @@
+﻿
+@font-face {
+    src:url("assets/Meta-Bold.pfb");
+	fontWeight: Bold;
+    fontFamily: MetaBold;
+    advancedAntiAliasing: true;
+	unicodeRange:
+           U+0041-U+005A, /* Upper-Case [A..Z] */
+           U+0061-U+007A, /* Lower-Case a-z */
+           U+0030-U+0039, /* Numbers [0..9] */
+           U+002E-U+002E, /* Period [.] */
+		   U+002C, /* Comma [,] */
+		   U+002D, /* Hyphen [-] */
+		   U+0027, /* apostrophe ['] */
+		   U+0028, /* left parenthesis [)] */
+		   U+0029, /* right parenthesis [(] */
+		   U+003A, /* Colon [:] */
+		   U+0024, /* Dollar [$] */
+		   U+0025, /* Percent[%] */
+		   U+003F; /* Interrogation[?] */
+}
+
+Application{
+	backgroundColor: #ffffff;
+	backgroundGradientAlphas: 1,1;
+	backgroundGradientColors: #ffffff,#ffffff;
+	paddingTop:0;
+	paddingBottom:0;
+	fontFamily: MetaBold;
+}
+
+.canvasGradientOutside{
+	colorsConfiguration: 2;
+	fillColors: #ffffff, #bfbfbf;
+	fillAlphas:  1,1;
+	gradientRatio: 0,255;
+	angle: 90;
+	cornerRadius: 14;
+	borderThickness: 1.5;
+	borderColors: #CCCCCC;
+
+   dropShadowEnabled: true;
+   shadowDistance: 1;
+   shadowDirection: right;
+   dropShadowColor: #333333;		
+} 
+
+.canvasGradientInside{
+	colorsConfiguration: 2;
+	fillColors: #d9d9d9, #f2f2f2;
+	fillAlphas:  1,1;
+	gradientRatio: 0,255;
+	angle: 90;
+	cornerRadius: 10;
+	borderThickness: 0;
+	borderColors: #CCCCCC;
+} 
+
+.canvasGradientVertical{
+	colorsConfiguration: 2;
+	fillColors: #ffffff, #bfbfbf;
+	fillAlphas:  1,1;
+	gradientRatio: 0,255;
+	angle: 90;
+	cornerRadius: 0;
+	borderThickness: 0;
+} 
+
+.canvasTitle {
+	color: #000000;
+	textAlign: center;
+	fontFamily: MetaBold;
+	fontSize: 14;
+	fontWeight: bold;
+} 
+
+Label {
+	
+	fontSize: 13;
+	color: #4D4D4D;
+	fontWeight: bold;
+}
+
+.legal {
+	fontFamily: Arial;
+	font-size: 8;
+	color: #8d8d8d;
+	textAlign: justify;
+}
+
+.button {
+   cornerRadius: 5;
+   highlightAlphas: 0.62, 0.17;
+   fillAlphas: 0.76, 0.7, 0.3, 0.41;
+   fillColors: #295fa8, #003399, #2e6cc0, #0344c6;
+   color: #ffffff;
+   textRollOverColor: #ffffff;
+   borderColor: #000066;
+   themeColor: #000000; 
+   fontSize: 14;
+}
+
+ComboBox {
+	embedFonts: true;
+	fontFamily: "MetaBold";
+	fontWeight: bold;
+	fontSize: 13;
+	color: #666666;
+	borderColor: #7c8181;
+	rollOverColor: #DDDDDD;
+	themeColor: #cccccc;
+	drop-down-style-name:"dropDownStyle"; 
+}
+
+.dropDownStyle 
+{ 
+    font-family: MetaBold; 
+    font-size:14; 
+    font-weight:bold; 
+    color:#2C5291; 
+} 
+
+.errorTip {
+	borderColor: RED;
+	color: white;
+	fontSize: 12;
+	fontWeight: normal;
+}
+
+TextInput {
+	fontFamily: "MetaBold";
+	fontWeight: bold;
+	fontSize: 14;
+	color: #2C5291;
+	errorColor: #CA3F3F;
+}
+
+.callToAction {
+	color: white;
+	fontSize: 13;
+	fontWeight: bold;
+}
+
+Text {
+	color: #4D4D4D;
+	fontSize: 14;
+	textAlign: justify;
+}
+
+TabNavigator {
+	fontFamily: "MetaBold";
+	fontWeight: bold;
+	fontSize: 14;
+	fontColor: #2C5291;
+	tabHeight: 28;
+	horizontalAlign: center;
+	horizontalGap: -1;
+	tabWidth: 265;
+	cornerRadius: 0;
+	horizontalGap: 0;
+	backgroundAlpha: 0;
+	borderStyle: none;
+	borderThickness: 0;
+	dropShadowEnabled: false;
+	tabStyleName: "myTabs";
+}
+
+.myTabs {
+   highlightAlphas: 0.96, 0.26;
+   letterSpacing: 0;
+   fillAlphas: 1, 1;
+   fillColors: #ffffff, #ffffff;
+   backgroundAlpha: 0;
+   borderColor: #CFD2D4;
+   themeColor: #999999;
+}
