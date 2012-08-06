@@ -341,7 +341,7 @@
 		<com:GradientCanvas id="chartsContainer" styleName="canvasGradientOutside" gradientRatio = "[0,127]" width="818" height="486" y="138">
 			
 			<mx:Label x="130" y="456" selectable="true" link="linkHandler(event);" styleName="callToAction">
-				<mx:htmlText><![CDATA[Go to <a href='event:http://www.thelivingbalancesheet.com/get-started'><u>Get Started</u></a> and request a free consultation to find out how you can limit the impact of taxes.]]>
+				<mx:htmlText><![CDATA[Go to <a href='event:/contact'><u>Contact</u></a> and request a free consultation to find out how you can limit the impact of taxes.]]>
 				</mx:htmlText>
 			</mx:Label>		
 			
