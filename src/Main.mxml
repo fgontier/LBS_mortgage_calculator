@@ -66,9 +66,10 @@
 
 	public function createTable():void
 	{
-	
-		myMortgage15 = new Mortgage(monthly15, mortgageBalanceNum, monthly15, interestRateNum, houseValueNum, houseAppreciationRateChosen );	
-		myMortgage30 = new Mortgage(monthly15, mortgageBalanceNum, monthly30, interestRateNum, houseValueNum, houseAppreciationRateChosen );
+		// old
+		myMortgage15 = new Mortgage(monthly15, mortgageBalanceNum, monthly15, interestRateNum, houseValueNum, houseAppreciationRateChosen, '15 Year Mortgage' );	
+		myMortgage30 = new Mortgage(monthly15, mortgageBalanceNum, monthly30, interestRateNum, houseValueNum, houseAppreciationRateChosen, '30 Year Mortgage');
+
 		
 		////////////////// MORTGAGE  15 YEAR ///////////////////
 		while (myMortgage15.month < 360)
@@ -340,8 +341,8 @@
 	
 		<com:GradientCanvas id="chartsContainer" styleName="canvasGradientOutside" gradientRatio = "[0,127]" width="818" height="486" y="138">
 			
-			<mx:Label x="130" y="456" selectable="true" link="linkHandler(event);" styleName="callToAction">
-				<mx:htmlText><![CDATA[Go to <a href='event:/contact'><u>Contact</u></a> and request a free consultation to find out how you can limit the impact of taxes.]]>
+			<mx:Label x="210" y="456" selectable="true" link="linkHandler(event);" styleName="callToAction">
+				<mx:htmlText><![CDATA[<a href='event:/contact' target='_top' class="calc-out"><u>Find an LBS Expert near you</u></a> to see how you can limit the impact of taxes.]]>
 				</mx:htmlText>
 			</mx:Label>		
 			
