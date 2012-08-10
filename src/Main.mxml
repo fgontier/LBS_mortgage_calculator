@@ -20,9 +20,14 @@
 	import mx.events.ValidationResultEvent;
 	import agi.utils.Format;
 	
-	private var houseValueNum:int = 0;
+	//private var houseValueNum:int = 0;
+	private var houseValueNum:Number = 0;
+		
 	private var houseAppreciationRateChosen:Number = 0;
-	private var mortgageBalanceNum:int = 0;
+		
+	//private var mortgageBalanceNum:int = 0;
+	private var mortgageBalanceNum:Number = 0;
+		
 	private var interestRateNum:Number;		
 	private var myMortgage15:Mortgage;
 	private var myMortgage30:Mortgage;
@@ -107,6 +112,9 @@
 		{year:"Year 30", mortgageBalance:(Math.round(myMortgage30.summaryArray[5][2])*100)/100, savings:(Math.round(myMortgage30.summaryArray[5][4])*100)/100, equity: (Math.round(myMortgage30.summaryArray[5][3])*100)/100}
 		]);
 		
+		trace ("mortgageBalance " + (Math.round(myMortgage30.summaryArray[5][2])*100)/100)
+		trace ("mortgageBalance " + (myMortgage30.summaryArray[5][2])*100/100)
+		
 		_15ve30YearArray = new ArrayCollection([
 		{year:"Year 15", monthlyMortgagePayment: (Math.round(monthly15*100)/100), monthlySavings: 0},
 		{year:"Year 30", monthlyMortgagePayment: (Math.round(monthly30*100)/100), monthlySavings: difference}
@@ -128,7 +136,10 @@
 		obj.year = mySummaryArray15[5][0];
 		obj.mortgage15year = reformate(mySummaryArray15[5][2]);
 		obj.mortgage30year = reformate(mySummaryArray30[5][2]);
-		myGrid1Provider.addItem(obj);		
+		myGrid1Provider.addItem(obj);
+		
+		trace("mySummaryArray30[5][2] " + mySummaryArray30[5][2])
+		trace("reformate(mySummaryArray30[5][2]) " + reformate(mySummaryArray30[5][2]))
 		
 // Home Equity Balance:		
 		myGrid2Provider = new ArrayCollection;
@@ -292,7 +303,8 @@
 	
 	public function reformate(value:Number):String
 	{
-		if(value <= 0) {value = 0}
+//		if(value <= 0) {value = 0}
+		if(value < 1) {value = 0}
 		var formatedValue:String = _format.currency(value, 0, "$");			//_format.currency(value,2,"$")
 		return(formatedValue);
 	}
